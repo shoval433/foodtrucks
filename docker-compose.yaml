@@ -1,0 +1,40 @@
+version: '3'
+services:
+  alb:
+    build: ./proxy
+    ports:
+        - "80:80"
+    networks:
+      - elastic
+    depends_on:
+      - app_flask
+
+  app_flask:
+    build: ./flask-app/
+   
+    # ports:
+    #   - "5000:5000"
+    networks:
+      - elastic
+    depends_on:
+      - es
+    #     condition: service_healthy 
+
+  es:
+    # image: docker.elastic.co/elasticsearch/elasticsearch:3.6.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
+    container_name: es
+    environment:
+      - node.name=es
+      - cluster.name=es-docker-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+    ports:
+      - "9200:9200"
+    networks:
+      - elastic
+
+networks:
+  elastic:
+    driver: bridge
